@@ -1,0 +1,39 @@
+@font-face {
+    font-family: "PressStart";
+    src: url("fonts/PressStart2P-Regular.ttf");
+}
+
+body {
+    font-family: "PressStart";
+    text-align: center;
+    background: #0f0f1f;
+    color: #fff;
+    image-rendering: pixelated;
+}
+
+button, input {
+    font-family: "PressStart";
+    padding: 12px;
+    border: 3px solid #fff;
+    background: #ffcc00;
+    cursor: pointer;
+}
+
+.slotBox {
+    background: url("img/slot_bg.png") center center no-repeat;
+    background-size: contain;
+    padding-right: 160px;
+    padding-bottom: 20px;
+    width: 1200px;
+    height: 700px;
+    margin: 0 auto 0 150px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    image-rendering: pixelated;
+}
+
+
+.hidden {
+    display: none;
+}

@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Ведущий — Исторический Додеп</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        #scoreBoard {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-around;
+            background: #111;
+            padding: 10px;
+            border-top: 3px solid #fff;
+        }
+
+            #scoreBoard div {
+                font-size: 16px;
+            }
+
+        .slotBox img {
+            width: 100px;
+            height: 100px;
+            margin: 0 5px;
+        }
+
+        #controls button {
+            font-size: 18px;
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>ВЕДУЩИЙ</h1>
+
+    <div id="controls">
+        <button id="startBtn" onclick="startGame()">Начать игру</button>
+        <button onclick="resetGame()">Сбросить игру</button>
+    </div>
+
+    <div id="phaseInfo">
+        <div>Фаза: <span id="phaseName">waiting</span></div>
+        <div>Ход команды: <span id="currentTeam">-</span></div>
+        <div>Вопрос <span id="qNumber">0</span> / 30</div>
+    </div>
+
+    <div id="slots" class="phase hidden">
+        <h2>СЛОТЫ</h2>
+        <div class="slotBox">
+            <img id="s1">
+            <img id="s2">
+            <img id="s3">
+        </div>
+    </div>
+
+    <div id="question" class="phase hidden">
+        <h2 id="qText"></h2>
+        <img id="qImg" style="max-width:300px;" class="hidden">
+        <br>
+        <button onclick="correct()">Верно</button>
+        <button onclick="wrong()">Неверно</button>
+    </div>
+
+    <div id="wait" class="phase hidden">
+        <h2 id="wText"></h2>
+    </div>
+
+    <div id="scoreBoard">
+        <div>Политологи: <span id="bal1">1000</span></div>
+        <div>Экономисты: <span id="bal2">1000</span></div>
+        <div>Социологи: <span id="bal3">1000</span></div>
+        <div>Культуристы: <span id="bal4">1000</span></div>
+        <div>Дипломаты: <span id="bal5">1000</span></div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        let data;
+
+        const s1 = document.getElementById("s1");
+        const s2 = document.getElementById("s2");
+        const s3 = document.getElementById("s3");
+        const phaseName = document.getElementById("phaseName");
+        const currentTeamElem = document.getElementById("currentTeam");
+        const qText = document.getElementById("qText");
+        const qImg = document.getElementById("qImg");
+        const wText = document.getElementById("wText");
+        const qNumber = document.getElementById("qNumber");
+        const balElements = [document.getElementById("bal1"), document.getElementById("bal2"), document.getElementById("bal3"), document.getElementById("bal4"), document.getElementById("bal5")];
+
+        function updateBalances() { for (let i = 0; i < 5; i++) balElements[i].textContent = data.teams[i + 1].balance; }
+        function startGame() { socket.emit("startGame"); }
+        function resetGame() { socket.emit("resetGame"); }
+        function correct() { socket.emit("answer", true); }
+        function wrong() { socket.emit("answer", false); }
+
+        socket.on("state", d => { data = d; render(); });
+
+        socket.on("answerResult", res => {
+            if (res.correct) alert(`Команда ${res.team}: Верно! начислено ${res.winAmount}`);
+            else alert(`Команда ${res.team}: Неверно. Ставка списана.`);
+        });
+
+        function animateSlots(finalResult, callback) {
+            const fruits = ["fruit1.png", "fruit2.png", "fruit3.png"];
+            let frameCount = 0;
+            const totalFrames = 500;
+            function spin() {
+                if (frameCount < totalFrames) {
+                    const speed = Math.max(1, Math.floor(frameCount / 10));
+                    if (frameCount % speed === 0) {
+                        s1.src = "img/" + fruits[Math.floor(Math.random() * 3)];
+                        s2.src = "img/" + fruits[Math.floor(Math.random() * 3)];
+                        s3.src = "img/" + fruits[Math.floor(Math.random() * 3)];
+                    }
+                    frameCount++;
+                    requestAnimationFrame(spin);
+                } else {
+                    s1.src = "img/" + finalResult.a;
+                    s2.src = "img/" + finalResult.b;
+                    s3.src = "img/" + finalResult.c;
+                    mult.textContent = finalResult.multiplier;
+                    setTimeout(() => callback(), 1500);
+                }
+            }
+            spin();
+        }
+
+        function render() {
+            hideAll();
+            if (!data) return;
+            updateBalances();
+            phaseName.textContent = data.state;
+            currentTeamElem.textContent = data.teams[data.currentTeam].name;
+            qNumber.textContent = data.questionIndex;
+            document.getElementById("startBtn").style.display = (data.state === "waiting") ? "inline-block" : "none";
+
+            switch (data.state) {
+                case "bet": show("wait"); wText.textContent = `Ход команды ${data.teams[data.currentTeam].name}`; break;
+                case "slots": show("slots"); if (data.slotResult)
+                    animateSlots(data.slotResult, () => socket.emit("slotsFinished"));
+                    break;
+                case "showX": show("wait"); wText.textContent = data.pendingRound && data.pendingRound.slotResult ? `Слоты: x${data.pendingRound.slotResult.multiplier}` : "Слоты"; break;
+                case "question":
+                    show("question");
+                    qText.textContent = data.question.text;
+                    if (data.question.img) {
+                        qImg.src = "img/" + data.question.img;
+                        qImg.classList.remove("hidden");
+                    } else {
+                        qImg.classList.add("hidden"); // скрываем, если картинки нет
+                    }
+                    break;
+
+                default: show("wait"); wText.textContent = "Ожидание...";
+            }
+        }
+
+        function hideAll() { document.querySelectorAll(".phase").forEach(x => x.classList.add("hidden")); }
+        function show(id) { document.getElementById(id).classList.remove("hidden"); }
+    </script>
+</body>
+</html>

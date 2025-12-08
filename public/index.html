@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Исторический Додеп</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        #scoreBoard {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-around;
+            background: #111;
+            padding: 10px;
+            border-top: 3px solid #fff;
+        }
+
+            #scoreBoard div {
+                font-size: 16px;
+            }
+
+        .slotBox img {
+            width: 100px;
+            height: 100px;
+            margin: 0 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>ИСТОРИЧЕСКИЙ ДОДЕП</h1>
+
+    <div id="scoreBoard">
+        <div>Политологи: <span id="bal1">1000</span></div>
+        <div>Экономисты: <span id="bal2">1000</span></div>
+        <div>Социологи: <span id="bal3">1000</span></div>
+        <div>Культуристы: <span id="bal4">1000</span></div>
+        <div>Дипломаты: <span id="bal5">1000</span></div>
+    </div>
+
+    <div id="teamSelect" class="phase">
+        <h2>Выбери команду</h2>
+        <button onclick="choose(1)">Политологи</button>
+        <button onclick="choose(2)">Экономисты</button>
+        <button onclick="choose(3)">Социологи</button>
+        <button onclick="choose(4)">Культуристы</button>
+        <button onclick="choose(5)">Дипломаты</button>
+    </div>
+
+    <div id="bet" class="phase hidden">
+        <h2>Ставка команды <span id="currentTeam"></span></h2>
+        <input id="betInput" type="number" min="1">
+        <button onclick="placeBet()">Поставить</button>
+    </div>
+
+    <div id="slots" class="phase hidden">
+        <h2>СЛОТЫ</h2>
+        <div class="slotBox">
+            <img id="s1">
+            <img id="s2">
+            <img id="s3">
+        </div>
+    </div>
+
+    <div id="showX" class="phase hidden">
+        <h2>Результат: x<span id="mult"></span></h2>
+    </div>
+
+    <div id="question" class="phase hidden">
+        <h2 id="qText"></h2>
+        <img id="qImg" style="max-width:300px; image-rendering:pixelated;">
+        <p>Вопрос <span id="qNumber"></span> / 30</p>
+    </div>
+
+    <div id="wait" class="phase hidden">
+        <h2 id="wText"></h2>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        let teamId = null;
+        let stateData;
+
+        const s1 = document.getElementById("s1");
+        const s2 = document.getElementById("s2");
+        const s3 = document.getElementById("s3");
+        const mult = document.getElementById("mult");
+        const wText = document.getElementById("wText");
+        const currentTeamElem = document.getElementById("currentTeam");
+        const qText = document.getElementById("qText");
+        const qImg = document.getElementById("qImg");
+        const qNumber = document.getElementById("qNumber");
+        const balElements = [document.getElementById("bal1"), document.getElementById("bal2"), document.getElementById("bal3"), document.getElementById("bal4"), document.getElementById("bal5")];
+
+        function updateBalances() { for (let i = 0; i < 5; i++) balElements[i].textContent = stateData.teams[i + 1].balance; }
+
+        function choose(id) {
+            teamId = id;
+            socket.emit("teamSelect", id);
+            document.getElementById("teamSelect").classList.add("hidden");
+        }
+
+        function placeBet() {
+            let betAmount = Number(document.getElementById("betInput").value);
+            if (betAmount > stateData.teams[teamId].balance) { alert("Ставка не может быть больше вашего баланса!"); return; }
+            socket.emit("bet", betAmount);
+        }
+
+        socket.on("state", dat => {
+            stateData = dat;
+            render();
+        });
+
+        socket.on("hideTeamSelect", () => { document.getElementById("teamSelect").classList.add("hidden"); });
+
+        function animateSlots(finalResult, callback) {
+            const fruits = ["fruit1.png", "fruit2.png", "fruit3.png"];
+            let frameCount = 0;
+            const totalFrames = 500;
+            function spin() {
+                if (frameCount < totalFrames) {
+                    const speed = Math.max(1, Math.floor(frameCount / 10));
+                    if (frameCount % speed === 0) {
+                        s1.src = "img/" + fruits[Math.floor(Math.random() * 3)];
+                        s2.src = "img/" + fruits[Math.floor(Math.random() * 3)];
+                        s3.src = "img/" + fruits[Math.floor(Math.random() * 3)];
+                    }
+                    frameCount++;
+                    requestAnimationFrame(spin);
+                } else {
+                    s1.src = "img/" + finalResult.a;
+                    s2.src = "img/" + finalResult.b;
+                    s3.src = "img/" + finalResult.c;
+                    mult.textContent = finalResult.multiplier;
+                    setTimeout(() => callback(), 1500);
+                }
+            }
+            spin();
+        }
+
+        function render() {
+            hideAll();
+            if (!stateData) return;
+            updateBalances();
+            currentTeamElem.textContent = stateData.teams[stateData.currentTeam].name;
+            qNumber.textContent = stateData.questionIndex;
+
+            if (!teamId) { show("teamSelect"); return; }
+
+            switch (stateData.state) {
+                case "bet":
+                    if (teamId === stateData.currentTeam) show("bet");
+                    else {
+                        show("wait");
+                        wText.textContent = `Ход команды ${stateData.teams[stateData.currentTeam].name}`;
+                    }
+                    break;
+                case "slots":
+                    show("slots");
+                    if (stateData.slotResult) animateSlots(stateData.slotResult, () => { });
+                    break;
+                case "showX":
+                    show("showX");
+                    mult.textContent = stateData.slotResult.multiplier;
+                    break;
+                case "question":
+                    show("question");
+                    qText.textContent = stateData.question.text;
+                    if (stateData.question.img) {
+                        qImg.src = "img/" + stateData.question.img;
+                        qImg.classList.remove("hidden");
+                    } else {
+                        qImg.classList.add("hidden"); // скрываем, если картинки нет
+                    }
+                    break;
+                default:
+                    show("wait"); wText.textContent = "Ожидание...";
+            }
+        }
+
+        function hideAll() { document.querySelectorAll(".phase").forEach(x => x.classList.add("hidden")); }
+        function show(id) { document.getElementById(id).classList.remove("hidden"); }
+    </script>
+</body>
+</html>
