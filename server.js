@@ -238,18 +238,16 @@ io.on("connection", socket => {
                 if (currentTeam > 5) currentTeam = 1;
             }
 
-            // увеличиваем индекс вопроса
             if (questionIndex < questions.length) {
-                question = questions[questionIndex]; // следующий вопрос
+                question = questions[questionIndex]; 
                 state = "bet";
             } else {
                 state = "waiting";
             }
 
-            // сброс ставок и модификаторов
             currentBet = 0;
             slotResult = null;
-            betModifiers = {shield: false};
+            betModifiers = { shield: false, reverse: betModifiers.reverse};
             currentMultiplier = 1;
             if (questionIndex == 30) {
                 state = "end";
