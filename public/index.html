@@ -105,6 +105,9 @@
 
         function placeBet() {
             let betAmount = Number(document.getElementById("betInput").value);
+            if (!Number.isInteger(betAmount)) {
+                betAmount = Math.round(betAmount);
+            }
             if (betAmount > stateData.teams[teamId].balance) { alert("Ставка не может быть больше вашего баланса!"); return; }
             socket.emit("bet", betAmount);
         }
@@ -165,13 +168,13 @@
         });
 
         socket.on("cardUsedYou", ({ card, result }) => {
-            if (card === "kub") showCardNotification(`Вы использовали кубик: ${result === "x2" ? "выигрыш x2" : "выигрыш /2"}`);
+            if (card === "kub") showCardNotification(`Вы использовали кубик: ${result === 2 ? "выигрыш x2" : "выигрыш /2"}`);
             else showCardNotification(`Вы использовали карту: ${card}`);
             renderCards();
         });
 
         socket.on("cardUsedOther", ({ team, card, result }) => {
-            if (card === "kub") showCardNotification(`${stateData.teams[team].name} использовали кубик: ${result === "x2" ? "выигрыш x2" : "выигрыш /2"}`);
+            if (card === "kub") showCardNotification(`${stateData.teams[team].name} использовали кубик: ${result === 2 ? "выигрыш x2" : "выигрыш /2"}`);
             else showCardNotification(`${stateData.teams[team].name} использовали карту: ${card}`);
         });
         socket.on("state", dat => {

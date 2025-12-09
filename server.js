@@ -171,7 +171,8 @@ io.on("connection", socket => {
                 }
                 break;
             case "reverse":
-                betModifiers.reverse = true;
+                if (betModifiers.reverse) betModifiers.reverse = false;
+                else betModifiers.reverse = true;
                 break;
             case "kub":
                 if (state === "bet") {
