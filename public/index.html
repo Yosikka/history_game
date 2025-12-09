@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Исторический Додеп</title>
+    <title>Игра Оттепель</title>
     <link rel="stylesheet" href="style.css">
     <style>
         #scoreBoard {
@@ -28,13 +28,13 @@
     </style>
 </head>
 <body>
-    <h1>ИСТОРИЧЕСКИЙ ДОДЕП</h1>
+    <h1>ИГРА ОТТЕПЕЛЬ</h1>
 
     <div id="scoreBoard">
         <div>Политологи: <span id="bal1">1000</span></div>
         <div>Экономисты: <span id="bal2">1000</span></div>
         <div>Социологи: <span id="bal3">1000</span></div>
-        <div>Культуристы: <span id="bal4">1000</span></div>
+        <div>Культурологи: <span id="bal4">1000</span></div>
         <div>Дипломаты: <span id="bal5">1000</span></div>
     </div>
 
@@ -43,7 +43,7 @@
         <button onclick="choose(1)">Политологи</button>
         <button onclick="choose(2)">Экономисты</button>
         <button onclick="choose(3)">Социологи</button>
-        <button onclick="choose(4)">Культуристы</button>
+        <button onclick="choose(4)">Культурологи</button>
         <button onclick="choose(5)">Дипломаты</button>
     </div>
 
@@ -52,7 +52,9 @@
         <input id="betInput" type="number" min="1">
         <button onclick="placeBet()">Поставить</button>
     </div>
-
+    <div id="cardPanel" class="hidden">
+        <div id="cards"></div>
+    </div>
     <div id="slots" class="phase hidden">
         <h2>СЛОТЫ</h2>
         <div class="slotBox">
@@ -106,7 +108,72 @@
             if (betAmount > stateData.teams[teamId].balance) { alert("Ставка не может быть больше вашего баланса!"); return; }
             socket.emit("bet", betAmount);
         }
+        function updateCardDisplay() {
+            const myCards = stateData.teams[teamId].cards;
 
+            // x2 и shield — только ход команды
+            cardX2Btn.style.display = (myCards.includes("x2") && teamId === stateData.currentTeam) ? "block" : "none";
+            cardShieldBtn.style.display = (myCards.includes("shield") && teamId === stateData.currentTeam) ? "block" : "none";
+
+            // x0.5 — только если не твой ход
+            cardX05Btn.style.display = (myCards.includes("x0.5") && teamId !== stateData.currentTeam) ? "block" : "none";
+
+            // reverse — всегда
+            cardReverseBtn.style.display = (myCards.includes("reverse")) ? "block" : "none";
+        }
+        function showCardNotification(text) {
+            const note = document.createElement("div");
+            note.className = "card-popup";
+            note.textContent = text;
+            document.body.append(note);
+            setTimeout(() => note.remove(), 3000);
+        }
+        function renderCards() {
+            const container = document.getElementById("cards");
+            container.innerHTML = "";
+
+            const myCards = stateData.teams[teamId].cards;
+
+            myCards.forEach(card => {
+                const img = document.createElement("img");
+                img.src = "img/" + card + ".png";
+                img.classList.add("cardImg");
+
+                let clickable = true;
+
+                // правила использования
+                if (card === "x2" && teamId !== stateData.currentTeam || stateData.state !== "bet") clickable = false;
+                if (card === "shield" && teamId !== stateData.currentTeam || stateData.state !== "bet") clickable = false;
+                if (card === "x0.5" && teamId === stateData.currentTeam || stateData.state !== "bet") clickable = false;
+                // reverse всегда доступен
+
+                if (!clickable) img.classList.add("disabledCard");
+
+                img.addEventListener("click", () => {
+                    if (!clickable) return;
+                    socket.emit("useCard", card);
+                });
+
+                container.appendChild(img);
+            });
+        }
+
+        socket.on("cardGivenYou", ({ card }) => {
+            showCardNotification(`Вам выпала карта: ${card}`);
+            renderCards();
+            updateCardDisplay();
+        });
+
+        socket.on("cardUsedYou", ({ card, result }) => {
+            if (card === "kub") showCardNotification(`Вы использовали кубик: ${result === "x2" ? "выигрыш x2" : "выигрыш /2"}`);
+            else showCardNotification(`Вы использовали карту: ${card}`);
+            renderCards();
+        });
+
+        socket.on("cardUsedOther", ({ team, card, result }) => {
+            if (card === "kub") showCardNotification(`${stateData.teams[team].name} использовали кубик: ${result === "x2" ? "выигрыш x2" : "выигрыш /2"}`);
+            else showCardNotification(`${stateData.teams[team].name} использовали карту: ${card}`);
+        });
         socket.on("state", dat => {
             stateData = dat;
             render();
@@ -141,10 +208,24 @@
 
         function render() {
             hideAll();
+
             if (!stateData) return;
+
             updateBalances();
             currentTeamElem.textContent = stateData.teams[stateData.currentTeam].name;
             qNumber.textContent = stateData.questionIndex;
+
+            const cardPanel = document.getElementById("cardPanel");
+
+            // Показываем панель карт только в фазе bet
+            if (stateData.state === "bet") {
+                cardPanel.classList.remove("hidden");
+                renderCards(); // рендерим карточки только если фаза bet
+            } else {
+                cardPanel.classList.add("hidden");
+                // Очищаем карточки на других фазах
+                document.getElementById("cards").innerHTML = "";
+            }
 
             if (!teamId) { show("teamSelect"); return; }
 
@@ -166,18 +247,30 @@
                     break;
                 case "question":
                     show("question");
-                    qText.textContent = stateData.question.text;
+                    if (stateData.showAnswer) {
+                        qText.textContent = stateData.question.ans;  // показываем ответ вместо текста вопроса
+                        qText.style.color = "white";                  // можно подсветить
+                    } else {
+                        qText.textContent = stateData.question.text;
+                        qText.style.color = "white";
+                    }
                     if (stateData.question.img) {
                         qImg.src = "img/" + stateData.question.img;
                         qImg.classList.remove("hidden");
                     } else {
-                        qImg.classList.add("hidden"); // скрываем, если картинки нет
+                        qImg.classList.add("hidden");
                     }
                     break;
+                case "end":
+                    show("wait");
+                    wText.textContent = "Игра окончена!";
+                    break;
                 default:
-                    show("wait"); wText.textContent = "Ожидание...";
+                    show("wait");
+                    wText.textContent = "Ожидание...";
             }
         }
+
 
         function hideAll() { document.querySelectorAll(".phase").forEach(x => x.classList.add("hidden")); }
         function show(id) { document.getElementById(id).classList.remove("hidden"); }

@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Ведущий — Исторический Додеп</title>
+    <title>Ведущий — Игра Оттепель</title>
     <link rel="stylesheet" href="style.css">
     <style>
         #scoreBoard {
@@ -73,7 +73,7 @@
         <div>Политологи: <span id="bal1">1000</span></div>
         <div>Экономисты: <span id="bal2">1000</span></div>
         <div>Социологи: <span id="bal3">1000</span></div>
-        <div>Культуристы: <span id="bal4">1000</span></div>
+        <div>Культурологи: <span id="bal4">1000</span></div>
         <div>Дипломаты: <span id="bal5">1000</span></div>
     </div>
 
@@ -105,7 +105,12 @@
             if (res.correct) alert(`Команда ${res.team}: Верно! начислено ${res.winAmount}`);
             else alert(`Команда ${res.team}: Неверно. Ставка списана.`);
         });
-
+        socket.on("cardGiven", ({ team, card }) => {
+            alert(`Команде ${data.teams[team].name} выпала карта: ${card}`);
+        });
+        socket.on("cardUsed", ({ team, card }) => {
+            alert(`Команда ${data.teams[team].name} использовала карту: ${card}`);
+        });
         function animateSlots(finalResult, callback) {
             const fruits = ["fruit1.png", "fruit2.png", "fruit3.png"];
             let frameCount = 0;
@@ -148,7 +153,13 @@
                 case "showX": show("wait"); wText.textContent = data.pendingRound && data.pendingRound.slotResult ? `Слоты: x${data.pendingRound.slotResult.multiplier}` : "Слоты"; break;
                 case "question":
                     show("question");
-                    qText.textContent = data.question.text;
+                    if (data.showAnswer) {
+                        qText.textContent = data.question.ans;  // заменяем текст на ответ
+                        qText.style.color = "white";             // можно подсветить цветом
+                    } else {
+                        qText.textContent = data.question.text;
+                        qText.style.color = "white";
+                    }
                     if (data.question.img) {
                         qImg.src = "img/" + data.question.img;
                         qImg.classList.remove("hidden");
@@ -156,7 +167,10 @@
                         qImg.classList.add("hidden"); // скрываем, если картинки нет
                     }
                     break;
-
+                case "end":
+                    show("wait");
+                    wText.textContent = "Игра окончена!";
+                    break;
                 default: show("wait"); wText.textContent = "Ожидание...";
             }
         }
