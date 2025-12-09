@@ -150,6 +150,10 @@ io.on("connection", socket => {
     });
 
     socket.on("useCard", card => {
+        if (!socket.teamId || !teams[socket.teamId]) {
+            console.log("Карта нажата без привязки к команде");
+            return;
+        }
         if (!teams[socket.teamId].cards.includes(card)) return;
 
         removeCard(socket.teamId, card);
