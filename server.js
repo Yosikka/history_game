@@ -254,7 +254,7 @@ io.on("connection", socket => {
             slotResult = null;
             betModifiers = { shield: false, reverse: betModifiers.reverse};
             currentMultiplier = 1;
-            if (questionIndex == 30) {
+            if (questionIndex == 31) {
                 state = "end";
                 broadcast();
                 return;
