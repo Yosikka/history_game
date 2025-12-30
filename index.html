@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ультрафиолетовое излучение — исследование</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: "Segoe UI", Arial, sans-serif;
+            background: linear-gradient(135deg, #eef2f3, #cfd9df);
+            color: #222;
+        }
+
+        header {
+            padding: 20px;
+            position: sticky;
+            top: 0;
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(6px);
+            z-index: 10;
+        }
+
+            header h1 {
+                margin: 0;
+            }
+
+        .dev-btn {
+            position: absolute;
+            right: 20px;
+            top: 20px;
+            background: #111;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: auto;
+            padding: 20px;
+        }
+
+        .article p {
+            line-height: 1.9;
+            margin-bottom: 20px;
+            font-size: 17px;
+        }
+
+        h2 {
+            margin-top: 50px;
+        }
+
+        footer {
+            background: #111;
+            color: #aaa;
+            text-align: center;
+            padding: 30px 10px;
+        }
+
+            footer i {
+                font-size: 30px;
+                margin: 0 15px;
+            }
+
+                footer i:hover {
+                    color: white;
+                }
+
+        /* DEV PANEL */
+
+        .dev-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+        }
+
+        .dev-box {
+            background: white;
+            padding: 25px;
+            border-radius: 14px;
+            width: 90%;
+            max-width: 360px;
+            text-align: center;
+            position: relative;
+        }
+
+            .dev-box input {
+                width: 100%;
+                padding: 10px;
+                margin-top: 10px;
+            }
+
+            .dev-box button {
+                margin-top: 12px;
+                padding: 10px 15px;
+            }
+
+        .close-btn {
+            position: absolute;
+            top: 8px;
+            right: 10px;
+            border: none;
+            background: none;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        .secret-img {
+            display: none;
+            margin-top: 15px;
+            width: 100%;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Ультрафиолетовое излучение — исследование</h1>
+        <button class="dev-btn" onclick="openDev()">Режим разработчика</button>
+    </header>
+
+    <div class="container">
+        <div class="article">
+
+            <p>
+                Ультрафиолетовое излучение — один из наиболее значимых факторов окружающей среды,
+                оказывающих прямое и косвенное влияние на биологические системы, атмосферные процессы
+                и здоровье человека. Несмотря на свою невидимость, ультрафиолет (УФ) играет ключевую роль
+                в формировании климата, биохимических реакций и эволюционных механизмов живых организмов.
+            </p>
+
+            <p>
+                В данной работе, подготовленной Евгением Кочергой, рассматриваются основные свойства
+                ультрафиолетового излучения, его физическая природа, влияние на биологические ткани,
+                а также потенциальные риски и положительные аспекты его воздействия.
+            </p>
+
+            <h2>1. Физическая природа ультрафиолетового излучения</h2>
+
+            <p>
+                Ультрафиолетовое излучение представляет собой часть электромагнитного спектра,
+                расположенную между видимым светом и рентгеновским излучением.
+                Его длина волны варьируется приблизительно от 10 до 400 нанометров.
+            </p>
+
+            <p>
+                В зависимости от длины волны выделяют три основных диапазона:
+                УФ-A, УФ-B и УФ-C. Каждый из них обладает различной степенью биологической активности
+                и проникающей способностью.
+            </p>
+
+            <p>
+                УФ-A лучи составляют наибольшую часть солнечного ультрафиолета, достигающего поверхности Земли.
+                Они относительно слабо поглощаются атмосферой и способны проникать в глубокие слои кожи.
+            </p>
+
+            <h2>2. Биологическое воздействие ультрафиолета</h2>
+
+            <p>
+                Воздействие ультрафиолетового излучения на живые организмы носит двойственный характер.
+                С одной стороны, УФ-излучение необходимо для синтеза витамина D,
+                который играет ключевую роль в обмене кальция и формировании костной ткани.
+            </p>
+
+            <p>
+                С другой стороны, избыточное воздействие ультрафиолета приводит
+                к повреждению ДНК, ускоренному старению кожи и увеличению риска
+                онкологических заболеваний.
+            </p>
+
+            <p>
+                Особенно опасным считается диапазон УФ-B, так как он способен
+                вызывать мутационные изменения на клеточном уровне.
+            </p>
+
+            <h2>3. Ультрафиолет и человек</h2>
+
+            <p>
+                Человек на протяжении тысячелетий адаптировался к воздействию солнечного излучения.
+                Однако в условиях современной цивилизации баланс между пользой и вредом
+                ультрафиолета всё чаще нарушается.
+            </p>
+
+            <p>
+                Использование искусственных источников УФ-излучения, истончение озонового слоя,
+                изменение образа жизни — всё это усиливает нагрузку на организм.
+            </p>
+
+            <p>
+                Именно поэтому в последние десятилетия особое внимание уделяется
+                разработке средств защиты, контролю времени пребывания на солнце
+                и изучению долгосрочных последствий воздействия ультрафиолета.
+            </p>
+
+            <h2>4. Заключение</h2>
+
+            <p>
+                Ультрафиолетовое излучение — это неотъемлемая часть существования биосферы.
+                Оно играет важную роль в поддержании жизни, но при этом требует
+                осознанного и взвешенного отношения со стороны человека.
+            </p>
+
+            <p>
+                Современные исследования показывают, что грамотное взаимодействие
+                с ультрафиолетом позволяет минимизировать риски и использовать
+                его положительные свойства во благо здоровья и науки.
+            </p>
+
+            <p>
+                Работа в этом направлении остаётся актуальной и требует дальнейшего
+                изучения, особенно в условиях изменяющегося климата и роста
+                техногенной нагрузки на окружающую среду.
+            </p>
+
+        </div>
+    </div>
+
+    <footer>
+        <a href="https://vk.com/id812176703" target="_blank"><i class="fa-brands fa-vk"></i></a>
+        <a href="https://www.google.com" target="_blank"><i class="fa-brands fa-telegram"></i></a>
+        <a href="https://www.google.com" target="_blank"><i class="fa-brands fa-instagram"></i></a>
+
+    </footer>
+
+    <!-- DEV PANEL -->
+    <div class="dev-overlay" id="dev" onclick="closeDev(event)">
+        <div class="dev-box">
+            <button class="close-btn" onclick="closeDev()">✖</button>
+            <h3>Введите кодовое слово</h3>
+            <input type="text" id="code">
+            <button onclick="check()">Проверить</button>
+            <img src="2000-0.webp" class="secret-img" id="secret">
+        </div>
+    </div>
+
+    <script>
+        function openDev() {
+            document.getElementById("dev").style.display = "flex";
+        }
+
+        function closeDev(e) {
+            if (!e || e.target.classList.contains("dev-overlay")) {
+                document.getElementById("dev").style.display = "none";
+            }
+        }
+
+        function check() {
+            const val = document.getElementById("code").value;
+            if (val === "талантливо") {
+                document.getElementById("secret").style.display = "block";
+            } else {
+                alert("Неверное кодовое слово");
+            }
+        }
+    </script>
+
+</body>
+</html>
